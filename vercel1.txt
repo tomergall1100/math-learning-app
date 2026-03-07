@@ -1,0 +1,17 @@
+{
+     "rewrites": [
+       {
+         "source": "/(.*)",
+         "destination": "/index.html"
+       }
+     ]
+   }
+```
+   - Save it as **`vercel.json`** (make sure it says `.json`, not `.txt`)
+   - Save it somewhere easy to find (like Desktop)
+
+4. **Back in GitHub**, select that `vercel.json` file you just created
+
+5. **In the "Commit changes" section**, type:
+```
+   Add vercel.json configuration
