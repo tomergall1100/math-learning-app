@@ -7,432 +7,133 @@
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { margin: 0; padding: 0; }
-    </style>
 </head>
-<body>
-    <div id="root"></div>
+<body style="margin:0;padding:0;">
+    <div id="root" style="width:100%;height:100vh;"></div>
+    
     <script>
-        // Inline the entire app here
+        const e = React.createElement;
         const { useState, useEffect } = React;
 
-        const MathApp = () => {
-          const ADMIN_USERNAME = 'admin';
-          const ADMIN_PASSWORD = 'admin123';
-
-          const [appMode, setAppMode] = useState('login');
-          const [adminUsername, setAdminUsername] = useState('');
-          const [adminPassword, setAdminPassword] = useState('');
-          const [showPassword, setShowPassword] = useState(false);
-          const [parentEmail, setParentEmail] = useState('');
-          const [parentPassword, setParentPassword] = useState('');
-          const [parentRegister, setParentRegister] = useState(false);
-          const [parentRegisterEmail, setParentRegisterEmail] = useState('');
-          const [parentRegisterPassword, setParentRegisterPassword] = useState('');
-          const [parents, setParents] = useState(JSON.parse(localStorage.getItem('mathAppParents')) || []);
-          const [currentParent, setCurrentParent] = useState(null);
-          const [children, setChildren] = useState([]);
-          const [currentChild, setCurrentChild] = useState(null);
-          const [childName, setChildName] = useState('');
-          const [childGrade, setChildGrade] = useState('5');
-          const [childPassword, setChildPassword] = useState('');
-          const [showChildForm, setShowChildForm] = useState(false);
-          const [selectedChildForLogin, setSelectedChildForLogin] = useState(null);
-          const [childLoginPassword, setChildLoginPassword] = useState('');
-          const [score, setScore] = useState(0);
-          const [streak, setStreak] = useState(0);
-          const [currentQuestion, setCurrentQuestion] = useState(null);
-          const [userAnswer, setUserAnswer] = useState('');
-          const [feedback, setFeedback] = useState(null);
-          const [answered, setAnswered] = useState(false);
-          const [totalAnswered, setTotalAnswered] = useState(0);
-          const [showExplanation, setShowExplanation] = useState(false);
-          const [inIntervention, setInIntervention] = useState(false);
-          const [interventionTopic, setInterventionTopic] = useState(null);
-
-          const grades = {
-            '5': { name: 'Grade 5', difficulty: 'basic' },
-            '6': { name: 'Grade 6', difficulty: 'basic-plus' },
-            '7': { name: 'Grade 7', difficulty: 'intermediate' },
-            '8': { name: 'Grade 8', difficulty: 'intermediate-plus' },
-            '9': { name: 'Grade 9', difficulty: 'advanced' }
-          };
-
-          const topics = {
-            fractions: { name: 'Fractions & Percentages', icon: '🍰', color: 'from-amber-400 to-orange-500' },
-            geometry: { name: 'Geometry', icon: '📐', color: 'from-cyan-400 to-blue-500' },
-            algebra: { name: 'Algebra', icon: '✖️', color: 'from-purple-400 to-pink-500' }
-          };
-
-          const questionSets = {
-            fractions: {
-              basic: [
-                { q: '1/2 + 1/4 = ?', a: '3/4', display: '1/2 + 1/4', explanation: 'Common denominator: 2/4 + 1/4 = 3/4' },
-                { q: '3/5 - 1/5 = ?', a: '2/5', display: '3/5 - 1/5', explanation: 'Same denominator: (3-1)/5 = 2/5' },
-                { q: '1/3 × 2 = ?', a: '2/3', display: '1/3 × 2', explanation: '(1 × 2)/3 = 2/3' },
-                { q: '50% of 80 = ?', a: '40', display: '50% of 80', explanation: '50% = 1/2, so 80 ÷ 2 = 40' },
-                { q: '2/4 simplified = ?', a: '1/2', display: '2/4 simplified = ?', explanation: 'Divide numerator and denominator by 2' },
-              ]
-            },
-            geometry: {
-              basic: [
-                { q: 'Area of rectangle: length 5, height 3 = ?', a: '15', display: 'Area of rectangle: 5 × 3', explanation: 'Area = length × height = 5 × 3 = 15' },
-                { q: 'Perimeter of square with side 4 = ?', a: '16', display: 'Perimeter of square: 4 × 4', explanation: 'Perimeter = 4 × side = 4 × 4 = 16' },
-                { q: 'Perimeter of rectangle: length 6, height 4 = ?', a: '20', display: 'Perimeter of rectangle: 2(6+4)', explanation: 'Perimeter = 2 × (length + height) = 2 × 10 = 20' },
-              ]
-            },
-            algebra: {
-              basic: [
-                { q: 'x + 5 = 12, x = ?', a: '7', display: 'x + 5 = 12', explanation: 'x = 12 - 5 = 7' },
-                { q: '2x = 10, x = ?', a: '5', display: '2x = 10', explanation: 'x = 10 ÷ 2 = 5' },
-                { q: 'x - 3 = 8, x = ?', a: '11', display: 'x - 3 = 8', explanation: 'x = 8 + 3 = 11' },
-              ]
-            }
-          };
+        function MathApp() {
+          const [mode, setMode] = useState('login');
+          const [email, setEmail] = useState('');
+          const [pass, setPass] = useState('');
+          const [parents, setParents] = useState(() => {
+            try { return JSON.parse(localStorage.getItem('math_parents')) || []; } 
+            catch { return []; }
+          });
 
           useEffect(() => {
-            localStorage.setItem('mathAppParents', JSON.stringify(parents));
+            localStorage.setItem('math_parents', JSON.stringify(parents));
           }, [parents]);
 
-          useEffect(() => {
-            if (currentParent) {
-              const parentData = parents.find(p => p.email === currentParent.email);
-              if (parentData) {
-                setChildren(parentData.children || []);
-              }
-            }
-          }, [currentParent, parents]);
-
-          const handleAdminLogin = () => {
-            if (adminUsername === ADMIN_USERNAME && adminPassword === ADMIN_PASSWORD) {
-              setAppMode('admin');
-              setAdminUsername('');
-              setAdminPassword('');
-            } else {
-              alert('Invalid username or password');
-            }
-          };
-
-          const handleParentRegister = () => {
-            if (!parentRegisterEmail || !parentRegisterPassword) {
-              alert('Please fill in all fields');
-              return;
-            }
-            if (parents.some(p => p.email === parentRegisterEmail)) {
-              alert('Account already exists');
-              return;
-            }
-            const newParent = { email: parentRegisterEmail, password: parentRegisterPassword, children: [] };
-            setParents([...parents, newParent]);
-            setCurrentParent(newParent);
-            setChildren([]);
-            setAppMode('parent-dashboard');
-            setParentRegister(false);
-            setParentRegisterEmail('');
-            setParentRegisterPassword('');
-          };
-
-          const handleParentLogin = () => {
-            if (!parentEmail || !parentPassword) {
-              alert('Please fill in all fields');
-              return;
-            }
-            const parent = parents.find(p => p.email === parentEmail && p.password === parentPassword);
+          const handleLogin = () => {
+            if (!email || !pass) { alert('Fill all fields'); return; }
+            const parent = parents.find(p => p.email === email && p.password === pass);
             if (parent) {
-              setCurrentParent(parent);
-              setChildren(parent.children || []);
-              setAppMode('parent-dashboard');
-              setParentEmail('');
-              setParentPassword('');
+              alert('Login successful!');
+              setMode('dashboard');
             } else {
-              alert('Invalid email or password');
+              alert('Invalid credentials');
             }
           };
 
-          const handleAddChild = () => {
-            if (!childName || !childPassword) {
-              alert('Please fill in all fields');
-              return;
-            }
-            if (children.length >= 3) {
-              alert('Maximum 3 children allowed');
-              return;
-            }
-            const newChild = {
-              id: Date.now(),
-              name: childName,
-              grade: parseInt(childGrade),
-              password: childPassword,
-              score: 0,
-              streak: 0,
-              totalAnswered: 0,
-              lastSession: new Date().toLocaleDateString()
-            };
-            const updatedChildren = [...children, newChild];
-            const updatedParents = parents.map(p =>
-              p.email === currentParent.email ? { ...p, children: updatedChildren } : p
+          const handleRegister = () => {
+            if (!email || !pass) { alert('Fill all fields'); return; }
+            if (parents.some(p => p.email === email)) { alert('Already exists'); return; }
+            setParents([...parents, { email, password: pass, children: [] }]);
+            alert('Account created!');
+            setEmail('');
+            setPass('');
+            setMode('login');
+          };
+
+          if (mode === 'login') {
+            return e('div', { className: 'min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-pink-700 flex items-center justify-center p-4' },
+              e('div', { className: 'max-w-md w-full bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20' },
+                e('h1', { className: 'text-4xl font-black text-white text-center mb-2' }, '🧮'),
+                e('h1', { className: 'text-3xl font-black text-white text-center mb-8' }, 'Math App'),
+                e('div', { className: 'mb-6' },
+                  e('label', { className: 'block text-white font-bold mb-2' }, 'Email'),
+                  e('input', { 
+                    type: 'email', 
+                    value: email, 
+                    onChange: (evt) => setEmail(evt.target.value), 
+                    className: 'w-full px-4 py-3 rounded-xl text-black',
+                    placeholder: 'Enter email'
+                  })
+                ),
+                e('div', { className: 'mb-8' },
+                  e('label', { className: 'block text-white font-bold mb-2' }, 'Password'),
+                  e('input', { 
+                    type: 'password', 
+                    value: pass, 
+                    onChange: (evt) => setPass(evt.target.value), 
+                    className: 'w-full px-4 py-3 rounded-xl text-black',
+                    placeholder: 'Enter password'
+                  })
+                ),
+                e('button', { 
+                  onClick: handleLogin, 
+                  className: 'w-full bg-white text-purple-900 font-black py-3 rounded-xl mb-4 hover:bg-gray-100' 
+                }, 'Login'),
+                e('button', { 
+                  onClick: () => setMode('register'), 
+                  className: 'w-full bg-white/20 text-white font-bold py-3 rounded-xl border border-white/30' 
+                }, 'Create Account')
+              )
             );
-            setParents(updatedParents);
-            setChildren(updatedChildren);
-            setChildName('');
-            setChildPassword('');
-            setChildGrade('5');
-            setShowChildForm(false);
-          };
+          }
 
-          const handleChildLogin = (child, password) => {
-            if (child.password === password) {
-              setCurrentChild(child);
-              setAppMode('child-learning');
-              setScore(child.score);
-              setStreak(child.streak);
-              setTotalAnswered(child.totalAnswered);
-              setSelectedChildForLogin(null);
-              setChildLoginPassword('');
-              setInIntervention(false);
-              generateNewQuestion(child.grade);
-            } else {
-              alert('Invalid password');
-              setChildLoginPassword('');
-            }
-          };
-
-          const generateNewQuestion = (grade) => {
-            const difficulty = grades[grade].difficulty;
-            const questions = (questionSets.fractions[difficulty] || questionSets.fractions.basic)
-              .map(q => ({ ...q, topic: 'fractions' }))
-              .concat((questionSets.geometry[difficulty] || questionSets.geometry.basic).map(q => ({ ...q, topic: 'geometry' })))
-              .concat((questionSets.algebra[difficulty] || questionSets.algebra.basic).map(q => ({ ...q, topic: 'algebra' })));
-            
-            const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
-            setCurrentQuestion(randomQuestion);
-            setUserAnswer('');
-            setFeedback(null);
-            setAnswered(false);
-            setShowExplanation(false);
-          };
-
-          const checkAnswer = () => {
-            if (!userAnswer.trim()) return;
-            const correct = userAnswer.trim().replace(/\s/g, '') === currentQuestion.a.replace(/\s/g, '');
-            setFeedback(correct);
-            setAnswered(true);
-            setTotalAnswered(totalAnswered + 1);
-            if (correct) {
-              const points = 10 + (streak * 2);
-              setScore(score + points);
-              setStreak(streak + 1);
-            } else {
-              setStreak(0);
-              setShowExplanation(true);
-            }
-          };
-
-          const LoginScreen = () => (
-            <div dir="ltr" className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-pink-700 flex items-center justify-center p-4">
-              <div className="max-w-md w-full">
-                <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20">
-                  <h1 className="text-4xl font-black text-white text-center mb-2">🧮</h1>
-                  <h1 className="text-3xl font-black text-white text-center mb-8">Math App</h1>
-
-                  {!parentRegister ? (
-                    <>
-                      <div className="mb-6">
-                        <label className="block text-white font-bold mb-2">Email</label>
-                        <input type="email" value={parentEmail} onChange={(e) => setParentEmail(e.target.value)} className="w-full px-4 py-3 rounded-xl text-black" placeholder="Enter email" />
-                      </div>
-                      <div className="mb-8">
-                        <label className="block text-white font-bold mb-2">Password</label>
-                        <input type={showPassword ? 'text' : 'password'} value={parentPassword} onChange={(e) => setParentPassword(e.target.value)} className="w-full px-4 py-3 rounded-xl text-black" placeholder="Enter password" />
-                      </div>
-                      <button onClick={handleParentLogin} className="w-full bg-white text-purple-900 font-black py-3 rounded-xl mb-4 hover:bg-gray-100 transition">Login Parent</button>
-                      <button onClick={() => setParentRegister(true)} className="w-full bg-white/20 text-white font-bold py-3 rounded-xl border border-white/30 hover:bg-white/30 transition">Create Account</button>
-                    </>
-                  ) : (
-                    <>
-                      <div className="mb-6">
-                        <label className="block text-white font-bold mb-2">Email</label>
-                        <input type="email" value={parentRegisterEmail} onChange={(e) => setParentRegisterEmail(e.target.value)} className="w-full px-4 py-3 rounded-xl text-black" placeholder="Enter email" />
-                      </div>
-                      <div className="mb-8">
-                        <label className="block text-white font-bold mb-2">Password</label>
-                        <input type={showPassword ? 'text' : 'password'} value={parentRegisterPassword} onChange={(e) => setParentRegisterPassword(e.target.value)} className="w-full px-4 py-3 rounded-xl text-black" placeholder="Create password" />
-                      </div>
-                      <button onClick={handleParentRegister} className="w-full bg-white text-purple-900 font-black py-3 rounded-xl mb-4 hover:bg-gray-100 transition">Create Account</button>
-                      <button onClick={() => setParentRegister(false)} className="w-full bg-white/20 text-white font-bold py-3 rounded-xl border border-white/30 hover:bg-white/30 transition">Back</button>
-                    </>
-                  )}
-
-                  <div className="mt-8 pt-8 border-t border-white/20">
-                    <p className="text-white/60 text-center text-sm mb-4">Admin Login</p>
-                    <input type="text" value={adminUsername} onChange={(e) => setAdminUsername(e.target.value)} className="w-full px-4 py-3 rounded-xl text-black mb-3" placeholder="Username" />
-                    <input type={showPassword ? 'text' : 'password'} value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} className="w-full px-4 py-3 rounded-xl text-black mb-4" placeholder="Password" />
-                    <button onClick={handleAdminLogin} className="w-full bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 font-bold py-3 rounded-xl border border-blue-400 transition">🔐 Admin Login</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-
-          const ParentDashboard = () => (
-            <div dir="ltr" className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-pink-700 p-4">
-              <div className="max-w-4xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
-                  <div>
-                    <h1 className="text-4xl font-black text-white">Parent Dashboard</h1>
-                    <p className="text-purple-100 mt-2">Welcome, {currentParent.email}</p>
-                  </div>
-                  <button onClick={() => { setCurrentParent(null); setAppMode('login'); }} className="bg-red-500/20 hover:bg-red-500/30 text-white font-bold py-3 px-6 rounded-xl border border-red-400 transition">Logout</button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {children.map(child => (
-                    <div key={child.id} className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
-                      <h3 className="text-2xl font-black text-white mb-2">{child.name}</h3>
-                      <p className="text-purple-100 mb-4 font-semibold">{grades[child.grade].name}</p>
-                      <div className="grid grid-cols-2 gap-3 mb-6">
-                        <div className="bg-white/10 rounded-xl p-3 text-center">
-                          <p className="text-yellow-300 text-2xl font-black">{child.score}</p>
-                          <p className="text-white text-xs font-bold">Points</p>
-                        </div>
-                        <div className="bg-white/10 rounded-xl p-3 text-center">
-                          <p className="text-cyan-300 text-2xl font-black">{child.totalAnswered}</p>
-                          <p className="text-white text-xs font-bold">Questions</p>
-                        </div>
-                      </div>
-                      <p className="text-purple-200 text-sm mb-4">Last: {child.lastSession}</p>
-                      <div className="flex gap-2">
-                        <button onClick={() => setSelectedChildForLogin(child)} className="flex-1 bg-green-500/20 hover:bg-green-500/30 text-white font-bold py-2 rounded-xl border border-green-400 transition">Login</button>
-                        <button onClick={() => { const updated = children.filter(c => c.id !== child.id); const p = parents.map(pa => pa.email === currentParent.email ? { ...pa, children: updated } : pa); setParents(p); setChildren(updated); }} className="bg-red-500/20 hover:bg-red-500/30 text-white font-bold py-2 px-4 rounded-xl border border-red-400 transition">Delete</button>
-                      </div>
-                    </div>
-                  ))}
-                  {children.length < 3 && (
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 border-dashed flex flex-col items-center justify-center">
-                      {!showChildForm ? (
-                        <button onClick={() => setShowChildForm(true)} className="flex flex-col items-center gap-3 w-full">
-                          <span className="text-4xl">+</span>
-                          <span className="text-white font-bold">Add Child</span>
-                        </button>
-                      ) : (
-                        <div className="w-full">
-                          <h3 className="text-xl font-black text-white mb-4">Add Child</h3>
-                          <input type="text" value={childName} onChange={(e) => setChildName(e.target.value)} className="w-full px-3 py-2 rounded-lg text-black mb-3" placeholder="Name" />
-                          <select value={childGrade} onChange={(e) => setChildGrade(e.target.value)} className="w-full px-3 py-2 rounded-lg text-black mb-3">
-                            {Object.entries(grades).map(([g, info]) => <option key={g} value={g}>{info.name}</option>)}
-                          </select>
-                          <input type="password" value={childPassword} onChange={(e) => setChildPassword(e.target.value)} className="w-full px-3 py-2 rounded-lg text-black mb-6" placeholder="Password" />
-                          <div className="flex gap-2">
-                            <button onClick={handleAddChild} className="flex-1 bg-white text-purple-900 font-bold py-2 rounded-lg hover:bg-gray-100 transition">Save</button>
-                            <button onClick={() => setShowChildForm(false)} className="flex-1 bg-white/20 text-white font-bold py-2 rounded-lg border border-white/30 hover:bg-white/30 transition">Cancel</button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-
-          const ChildLoginScreen = () => (
-            <div dir="ltr" className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-pink-700 flex items-center justify-center p-4">
-              <div className="max-w-md w-full">
-                <div className="bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20">
-                  <h1 className="text-3xl font-black text-white text-center mb-2">{selectedChildForLogin.name}</h1>
-                  <p className="text-purple-100 text-center mb-8 font-semibold">{grades[selectedChildForLogin.grade].name}</p>
-                  <div className="mb-8">
-                    <label className="block text-white font-bold mb-2">Password</label>
-                    <input type="password" value={childLoginPassword} onChange={(e) => setChildLoginPassword(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleChildLogin(selectedChildForLogin, childLoginPassword)} className="w-full px-4 py-3 rounded-xl text-black" placeholder="Enter password" autoFocus />
-                  </div>
-                  <button onClick={() => handleChildLogin(selectedChildForLogin, childLoginPassword)} className="w-full bg-white text-purple-900 font-black py-3 rounded-xl mb-4 hover:bg-gray-100 transition">Login</button>
-                  <button onClick={() => setSelectedChildForLogin(null)} className="w-full bg-white/20 text-white font-bold py-3 rounded-xl border border-white/30 hover:bg-white/30 transition">Back</button>
-                </div>
-              </div>
-            </div>
-          );
-
-          const ChildLearningScreen = () => {
-            if (!currentQuestion) return null;
-            const topicInfo = topics[currentQuestion.topic];
-            const accuracy = totalAnswered > 0 ? Math.round((score / (totalAnswered * 10)) * 100) : 0;
-
-            return (
-              <div dir="ltr" className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-pink-700 p-4">
-                <div className="max-w-2xl mx-auto">
-                  <div className="flex justify-between items-center mb-8">
-                    <div>
-                      <h1 className="text-2xl font-black text-white">{currentChild.name}</h1>
-                      <p className="text-purple-100 text-sm">{grades[currentChild.grade].name}</p>
-                    </div>
-                    <button onClick={() => { setCurrentChild(null); setAppMode('parent-dashboard'); setScore(0); setStreak(0); setTotalAnswered(0); }} className="bg-red-500/20 hover:bg-red-500/30 text-white font-bold py-2 px-4 rounded-xl border border-red-400 transition">Logout</button>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3 mb-6">
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 text-center border border-white/20">
-                      <div className="text-yellow-300 text-3xl font-black">{score}</div>
-                      <div className="text-white text-sm font-medium mt-1">Points</div>
-                    </div>
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 text-center border border-white/20">
-                      <div className="text-orange-300 text-3xl font-black">{streak}</div>
-                      <div className="text-white text-sm font-medium">Streak</div>
-                    </div>
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 text-center border border-white/20">
-                      <div className="text-cyan-300 text-3xl font-black">{accuracy}%</div>
-                      <div className="text-white text-sm font-medium mt-1">Accuracy</div>
-                    </div>
-                  </div>
-
-                  <div className={`bg-gradient-to-br ${topicInfo.color} rounded-3xl p-8 shadow-2xl mb-6 border-4 border-white/20`}>
-                    <div className="text-center mb-8">
-                      <span className="text-5xl mb-3 block">{topicInfo.icon}</span>
-                      <div className="text-white/90 text-sm font-semibold mb-4">{topicInfo.name}</div>
-                      <h2 className="text-4xl font-black text-white drop-shadow-lg">{currentQuestion.display}</h2>
-                    </div>
-
-                    <div className="flex gap-3 mb-6">
-                      <input type="text" value={userAnswer} onChange={(e) => setUserAnswer(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && !answered && checkAnswer()} disabled={answered} placeholder="Enter answer" className="flex-1 px-6 py-4 rounded-2xl text-lg font-bold text-center text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-white/50 disabled:opacity-60 disabled:cursor-not-allowed transition" autoFocus />
-                    </div>
-
-                    {!answered ? (
-                      <button onClick={checkAnswer} disabled={!userAnswer.trim()} className="w-full py-4 bg-white text-lg font-black rounded-2xl transition transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg">🎯 Check Answer</button>
-                    ) : (
-                      <button onClick={() => generateNewQuestion(currentChild.grade)} className="w-full py-4 bg-white text-lg font-black rounded-2xl transition transform hover:scale-105 active:scale-95 shadow-lg">➡️ Next Question</button>
-                    )}
-                  </div>
-
-                  {answered && (
-                    <>
-                      <div className={`rounded-3xl p-6 mb-6 border-4 backdrop-blur-md ${feedback ? 'bg-green-500/20 border-green-400 text-green-100' : 'bg-red-500/20 border-red-400 text-red-100'}`}>
-                        <div className="flex items-center gap-3 justify-center mb-3">
-                          <span className="text-2xl font-black">{feedback ? '✓ Correct! 🎉' : '✗ Try Again... 💪'}</span>
-                        </div>
-                        <div className="text-center">
-                          <p className="font-semibold">Correct answer: <span className="font-black text-white">{currentQuestion.a}</span></p>
-                        </div>
-                      </div>
-                      {showExplanation && currentQuestion.explanation && (
-                        <div className="bg-yellow-500/20 backdrop-blur-md rounded-2xl p-6 border border-yellow-400 mb-6">
-                          <p className="text-yellow-100 font-bold mb-2">💡 Explanation:</p>
-                          <p className="text-yellow-50">{currentQuestion.explanation}</p>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
+          if (mode === 'register') {
+            return e('div', { className: 'min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-pink-700 flex items-center justify-center p-4' },
+              e('div', { className: 'max-w-md w-full bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20' },
+                e('h1', { className: 'text-3xl font-black text-white text-center mb-8' }, 'Create Account'),
+                e('div', { className: 'mb-6' },
+                  e('input', { 
+                    type: 'email', 
+                    value: email, 
+                    onChange: (evt) => setEmail(evt.target.value), 
+                    className: 'w-full px-4 py-3 rounded-xl text-black',
+                    placeholder: 'Email'
+                  })
+                ),
+                e('div', { className: 'mb-8' },
+                  e('input', { 
+                    type: 'password', 
+                    value: pass, 
+                    onChange: (evt) => setPass(evt.target.value), 
+                    className: 'w-full px-4 py-3 rounded-xl text-black',
+                    placeholder: 'Password'
+                  })
+                ),
+                e('button', { 
+                  onClick: handleRegister, 
+                  className: 'w-full bg-white text-purple-900 font-black py-3 rounded-xl mb-4' 
+                }, 'Create'),
+                e('button', { 
+                  onClick: () => { setMode('login'); setEmail(''); setPass(''); }, 
+                  className: 'w-full bg-white/20 text-white font-bold py-3 rounded-xl' 
+                }, 'Back')
+              )
             );
-          };
+          }
 
-          if (appMode === 'login') return <LoginScreen />;
-          if (appMode === 'parent-dashboard') return selectedChildForLogin ? <ChildLoginScreen /> : <ParentDashboard />;
-          if (appMode === 'child-learning') return <ChildLearningScreen />;
-          return null;
-        };
+          return e('div', { className: 'min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-pink-700 flex items-center justify-center' },
+            e('div', { className: 'text-center' },
+              e('h1', { className: 'text-4xl font-black text-white mb-4' }, '🎉 Welcome!'),
+              e('p', { className: 'text-white text-xl mb-8' }, 'Login successful'),
+              e('button', { 
+                onClick: () => { setMode('login'); setEmail(''); setPass(''); }, 
+                className: 'bg-white text-purple-900 font-black py-3 px-8 rounded-xl' 
+              }, 'Logout')
+            )
+          );
+        }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<MathApp />);
+        root.render(React.createElement(MathApp));
     </script>
 </body>
 </html>
