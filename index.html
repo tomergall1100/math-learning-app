@@ -19,6 +19,8 @@
           const [mode, setMode] = useState('login');
           const [email, setEmail] = useState('');
           const [pass, setPass] = useState('');
+          const [adminUser, setAdminUser] = useState('');
+          const [adminPass, setAdminPass] = useState('');
           const [parents, setParents] = useState(() => {
             try { return JSON.parse(localStorage.getItem('math_parents')) || []; } 
             catch { return []; }
@@ -39,6 +41,15 @@
             }
           };
 
+          const handleAdminLogin = () => {
+            if (adminUser === 'admin' && adminPass === 'admin123') {
+              alert('Admin Login successful!');
+              setMode('admin');
+            } else {
+              alert('Invalid admin credentials');
+            }
+          };
+
           const handleRegister = () => {
             if (!email || !pass) { alert('Fill all fields'); return; }
             if (parents.some(p => p.email === email)) { alert('Already exists'); return; }
@@ -54,6 +65,7 @@
               e('div', { className: 'max-w-md w-full bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20' },
                 e('h1', { className: 'text-4xl font-black text-white text-center mb-2' }, '🧮'),
                 e('h1', { className: 'text-3xl font-black text-white text-center mb-8' }, 'Math App'),
+                
                 e('div', { className: 'mb-6' },
                   e('label', { className: 'block text-white font-bold mb-2' }, 'Email'),
                   e('input', { 
@@ -77,11 +89,37 @@
                 e('button', { 
                   onClick: handleLogin, 
                   className: 'w-full bg-white text-purple-900 font-black py-3 rounded-xl mb-4 hover:bg-gray-100' 
-                }, 'Login'),
+                }, 'Login Parent'),
                 e('button', { 
                   onClick: () => setMode('register'), 
-                  className: 'w-full bg-white/20 text-white font-bold py-3 rounded-xl border border-white/30' 
-                }, 'Create Account')
+                  className: 'w-full bg-white/20 text-white font-bold py-3 rounded-xl border border-white/30 mb-8' 
+                }, 'Create Account'),
+
+                e('div', { className: 'pt-8 border-t border-white/20' },
+                  e('p', { className: 'text-white/60 text-center text-sm mb-4 font-bold' }, '🔐 Admin Login'),
+                  e('div', { className: 'mb-4' },
+                    e('input', { 
+                      type: 'text', 
+                      value: adminUser, 
+                      onChange: (evt) => setAdminUser(evt.target.value), 
+                      className: 'w-full px-4 py-3 rounded-xl text-black',
+                      placeholder: 'Username'
+                    })
+                  ),
+                  e('div', { className: 'mb-4' },
+                    e('input', { 
+                      type: 'password', 
+                      value: adminPass, 
+                      onChange: (evt) => setAdminPass(evt.target.value), 
+                      className: 'w-full px-4 py-3 rounded-xl text-black',
+                      placeholder: 'Password'
+                    })
+                  ),
+                  e('button', { 
+                    onClick: handleAdminLogin, 
+                    className: 'w-full bg-blue-500/30 hover:bg-blue-500/40 text-blue-100 font-bold py-3 rounded-xl border border-blue-400' 
+                  }, '🔐 Admin Login')
+                )
               )
             );
           }
@@ -120,16 +158,39 @@
             );
           }
 
-          return e('div', { className: 'min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-pink-700 flex items-center justify-center' },
-            e('div', { className: 'text-center' },
-              e('h1', { className: 'text-4xl font-black text-white mb-4' }, '🎉 Welcome!'),
-              e('p', { className: 'text-white text-xl mb-8' }, 'Login successful'),
-              e('button', { 
-                onClick: () => { setMode('login'); setEmail(''); setPass(''); }, 
-                className: 'bg-white text-purple-900 font-black py-3 px-8 rounded-xl' 
-              }, 'Logout')
-            )
-          );
+          if (mode === 'dashboard') {
+            return e('div', { className: 'min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-pink-700 p-8' },
+              e('div', { className: 'max-w-2xl mx-auto' },
+                e('div', { className: 'text-center' },
+                  e('h1', { className: 'text-4xl font-black text-white mb-4' }, '🎉 Welcome!'),
+                  e('p', { className: 'text-white text-xl mb-2' }, `Login successful - ${email}`),
+                  e('p', { className: 'text-purple-100 mb-8' }, 'Parent Dashboard (Coming Soon)'),
+                  e('button', { 
+                    onClick: () => { setMode('login'); setEmail(''); setPass(''); setAdminUser(''); setAdminPass(''); }, 
+                    className: 'bg-white text-purple-900 font-black py-3 px-8 rounded-xl' 
+                  }, 'Logout')
+                )
+              )
+            );
+          }
+
+          if (mode === 'admin') {
+            return e('div', { className: 'min-h-screen bg-gradient-to-br from-blue-900 via-indigo-800 to-blue-700 p-8' },
+              e('div', { className: 'max-w-2xl mx-auto' },
+                e('div', { className: 'text-center' },
+                  e('h1', { className: 'text-4xl font-black text-white mb-4' }, '🔐 Admin Dashboard'),
+                  e('p', { className: 'text-blue-100 mb-8' }, 'Admin Panel (Coming Soon)'),
+                  e('p', { className: 'text-blue-100 mb-8 text-lg' }, 'Total Parents: ' + parents.length),
+                  e('button', { 
+                    onClick: () => { setMode('login'); setAdminUser(''); setAdminPass(''); }, 
+                    className: 'bg-white text-blue-900 font-black py-3 px-8 rounded-xl' 
+                  }, 'Logout')
+                )
+              )
+            );
+          }
+
+          return null;
         }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
