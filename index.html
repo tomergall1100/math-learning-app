@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Learning App</title>
+    <title>אפליקציית מתמטיקה</title>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,6 +21,8 @@
           const [pass, setPass] = useState('');
           const [adminUser, setAdminUser] = useState('');
           const [adminPass, setAdminPass] = useState('');
+          const [recoveryEmail, setRecoveryEmail] = useState('');
+          const [recoveryMessage, setRecoveryMessage] = useState('');
           const [parents, setParents] = useState(() => {
             try { return JSON.parse(localStorage.getItem('math_parents')) || []; } 
             catch { return []; }
@@ -31,79 +33,93 @@
           }, [parents]);
 
           const handleLogin = () => {
-            if (!email || !pass) { alert('Fill all fields'); return; }
+            if (!email || !pass) { alert('אנא מלא את כל השדות'); return; }
             const parent = parents.find(p => p.email === email && p.password === pass);
             if (parent) {
-              alert('Login successful!');
+              alert('התחברות הצליחה!');
               setMode('dashboard');
             } else {
-              alert('Invalid credentials');
+              alert('אימייל או סיסמא לא נכונים');
             }
           };
 
           const handleAdminLogin = () => {
             if (adminUser === 'admin' && adminPass === 'admin123') {
-              alert('Admin Login successful!');
+              alert('התחברות מנהל הצליחה!');
               setMode('admin');
             } else {
-              alert('Invalid admin credentials');
+              alert('שם משתמש או סיסמא לא נכונים');
             }
           };
 
           const handleRegister = () => {
-            if (!email || !pass) { alert('Fill all fields'); return; }
-            if (parents.some(p => p.email === email)) { alert('Already exists'); return; }
+            if (!email || !pass) { alert('אנא מלא את כל השדות'); return; }
+            if (parents.some(p => p.email === email)) { alert('חשבון זה כבר קיים'); return; }
             setParents([...parents, { email, password: pass, children: [] }]);
-            alert('Account created!');
+            alert('חשבון נוצר בהצלחה!');
             setEmail('');
             setPass('');
             setMode('login');
+          };
+
+          const handlePasswordRecovery = () => {
+            if (!recoveryEmail) { alert('אנא הכנס אימייל'); return; }
+            const parent = parents.find(p => p.email === recoveryEmail);
+            if (parent) {
+              setRecoveryMessage(`הסיסמא שלך היא: ${parent.password}`);
+            } else {
+              setRecoveryMessage('אימייל זה לא נמצא במערכת');
+            }
           };
 
           if (mode === 'login') {
             return e('div', { className: 'min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-pink-700 flex items-center justify-center p-4' },
               e('div', { className: 'max-w-md w-full bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20' },
                 e('h1', { className: 'text-4xl font-black text-white text-center mb-2' }, '🧮'),
-                e('h1', { className: 'text-3xl font-black text-white text-center mb-8' }, 'Math App'),
+                e('h1', { className: 'text-3xl font-black text-white text-center mb-8' }, 'אפליקציית מתמטיקה'),
                 
                 e('div', { className: 'mb-6' },
-                  e('label', { className: 'block text-white font-bold mb-2' }, 'Email'),
+                  e('label', { className: 'block text-white font-bold mb-2' }, 'אימייל'),
                   e('input', { 
                     type: 'email', 
                     value: email, 
                     onChange: (evt) => setEmail(evt.target.value), 
-                    className: 'w-full px-4 py-3 rounded-xl text-black',
-                    placeholder: 'Enter email'
+                    className: 'w-full px-4 py-3 rounded-xl text-black text-right',
+                    placeholder: 'הכנס אימייל'
                   })
                 ),
                 e('div', { className: 'mb-8' },
-                  e('label', { className: 'block text-white font-bold mb-2' }, 'Password'),
+                  e('label', { className: 'block text-white font-bold mb-2' }, 'סיסמא'),
                   e('input', { 
                     type: 'password', 
                     value: pass, 
                     onChange: (evt) => setPass(evt.target.value), 
-                    className: 'w-full px-4 py-3 rounded-xl text-black',
-                    placeholder: 'Enter password'
+                    className: 'w-full px-4 py-3 rounded-xl text-black text-right',
+                    placeholder: 'הכנס סיסמא'
                   })
                 ),
                 e('button', { 
                   onClick: handleLogin, 
                   className: 'w-full bg-white text-purple-900 font-black py-3 rounded-xl mb-4 hover:bg-gray-100' 
-                }, 'Login Parent'),
+                }, 'כניסה'),
                 e('button', { 
                   onClick: () => setMode('register'), 
+                  className: 'w-full bg-white/20 text-white font-bold py-3 rounded-xl border border-white/30 mb-2' 
+                }, 'יצירת חשבון חדש'),
+                e('button', { 
+                  onClick: () => { setMode('recovery'); setRecoveryMessage(''); }, 
                   className: 'w-full bg-white/20 text-white font-bold py-3 rounded-xl border border-white/30 mb-8' 
-                }, 'Create Account'),
+                }, 'שכחתי סיסמא'),
 
                 e('div', { className: 'pt-8 border-t border-white/20' },
-                  e('p', { className: 'text-white/60 text-center text-sm mb-4 font-bold' }, '🔐 Admin Login'),
+                  e('p', { className: 'text-white/60 text-center text-sm mb-4 font-bold' }, '🔐 כניסת מנהל'),
                   e('div', { className: 'mb-4' },
                     e('input', { 
                       type: 'text', 
                       value: adminUser, 
                       onChange: (evt) => setAdminUser(evt.target.value), 
-                      className: 'w-full px-4 py-3 rounded-xl text-black',
-                      placeholder: 'Username'
+                      className: 'w-full px-4 py-3 rounded-xl text-black text-right',
+                      placeholder: 'שם משתמש'
                     })
                   ),
                   e('div', { className: 'mb-4' },
@@ -111,15 +127,44 @@
                       type: 'password', 
                       value: adminPass, 
                       onChange: (evt) => setAdminPass(evt.target.value), 
-                      className: 'w-full px-4 py-3 rounded-xl text-black',
-                      placeholder: 'Password'
+                      className: 'w-full px-4 py-3 rounded-xl text-black text-right',
+                      placeholder: 'סיסמא'
                     })
                   ),
                   e('button', { 
                     onClick: handleAdminLogin, 
                     className: 'w-full bg-blue-500/30 hover:bg-blue-500/40 text-blue-100 font-bold py-3 rounded-xl border border-blue-400' 
-                  }, '🔐 Admin Login')
+                  }, '🔐 כניסת מנהל')
                 )
+              )
+            );
+          }
+
+          if (mode === 'recovery') {
+            return e('div', { className: 'min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-pink-700 flex items-center justify-center p-4' },
+              e('div', { className: 'max-w-md w-full bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20' },
+                e('h1', { className: 'text-3xl font-black text-white text-center mb-8' }, 'שחזור סיסמא'),
+                e('div', { className: 'mb-6' },
+                  e('label', { className: 'block text-white font-bold mb-2' }, 'הכנס את האימייל שלך'),
+                  e('input', { 
+                    type: 'email', 
+                    value: recoveryEmail, 
+                    onChange: (evt) => setRecoveryEmail(evt.target.value), 
+                    className: 'w-full px-4 py-3 rounded-xl text-black text-right',
+                    placeholder: 'אימייל'
+                  })
+                ),
+                e('button', { 
+                  onClick: handlePasswordRecovery, 
+                  className: 'w-full bg-white text-purple-900 font-black py-3 rounded-xl mb-4' 
+                }, 'שחזר סיסמא'),
+                recoveryMessage && e('div', { className: 'mb-6 p-4 bg-blue-500/20 rounded-xl border border-blue-400' },
+                  e('p', { className: 'text-blue-100 font-semibold text-center' }, recoveryMessage)
+                ),
+                e('button', { 
+                  onClick: () => { setMode('login'); setRecoveryEmail(''); setRecoveryMessage(''); }, 
+                  className: 'w-full bg-white/20 text-white font-bold py-3 rounded-xl' 
+                }, 'חזור להכנסה')
               )
             );
           }
@@ -127,14 +172,14 @@
           if (mode === 'register') {
             return e('div', { className: 'min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-pink-700 flex items-center justify-center p-4' },
               e('div', { className: 'max-w-md w-full bg-white/10 backdrop-blur-md rounded-3xl p-8 border border-white/20' },
-                e('h1', { className: 'text-3xl font-black text-white text-center mb-8' }, 'Create Account'),
+                e('h1', { className: 'text-3xl font-black text-white text-center mb-8' }, 'יצירת חשבון'),
                 e('div', { className: 'mb-6' },
                   e('input', { 
                     type: 'email', 
                     value: email, 
                     onChange: (evt) => setEmail(evt.target.value), 
-                    className: 'w-full px-4 py-3 rounded-xl text-black',
-                    placeholder: 'Email'
+                    className: 'w-full px-4 py-3 rounded-xl text-black text-right',
+                    placeholder: 'אימייל'
                   })
                 ),
                 e('div', { className: 'mb-8' },
@@ -142,18 +187,18 @@
                     type: 'password', 
                     value: pass, 
                     onChange: (evt) => setPass(evt.target.value), 
-                    className: 'w-full px-4 py-3 rounded-xl text-black',
-                    placeholder: 'Password'
+                    className: 'w-full px-4 py-3 rounded-xl text-black text-right',
+                    placeholder: 'סיסמא'
                   })
                 ),
                 e('button', { 
                   onClick: handleRegister, 
                   className: 'w-full bg-white text-purple-900 font-black py-3 rounded-xl mb-4' 
-                }, 'Create'),
+                }, 'צור חשבון'),
                 e('button', { 
                   onClick: () => { setMode('login'); setEmail(''); setPass(''); }, 
                   className: 'w-full bg-white/20 text-white font-bold py-3 rounded-xl' 
-                }, 'Back')
+                }, 'חזור')
               )
             );
           }
@@ -162,13 +207,13 @@
             return e('div', { className: 'min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-pink-700 p-8' },
               e('div', { className: 'max-w-2xl mx-auto' },
                 e('div', { className: 'text-center' },
-                  e('h1', { className: 'text-4xl font-black text-white mb-4' }, '🎉 Welcome!'),
-                  e('p', { className: 'text-white text-xl mb-2' }, `Login successful - ${email}`),
-                  e('p', { className: 'text-purple-100 mb-8' }, 'Parent Dashboard (Coming Soon)'),
+                  e('h1', { className: 'text-4xl font-black text-white mb-4' }, '🎉 ברוכים הבאים!'),
+                  e('p', { className: 'text-white text-xl mb-2' }, `התחברות הצליחה - ${email}`),
+                  e('p', { className: 'text-purple-100 mb-8' }, 'לוח הורה (בקרוב)'),
                   e('button', { 
                     onClick: () => { setMode('login'); setEmail(''); setPass(''); setAdminUser(''); setAdminPass(''); }, 
                     className: 'bg-white text-purple-900 font-black py-3 px-8 rounded-xl' 
-                  }, 'Logout')
+                  }, 'התנתקות')
                 )
               )
             );
@@ -178,13 +223,13 @@
             return e('div', { className: 'min-h-screen bg-gradient-to-br from-blue-900 via-indigo-800 to-blue-700 p-8' },
               e('div', { className: 'max-w-2xl mx-auto' },
                 e('div', { className: 'text-center' },
-                  e('h1', { className: 'text-4xl font-black text-white mb-4' }, '🔐 Admin Dashboard'),
-                  e('p', { className: 'text-blue-100 mb-8' }, 'Admin Panel (Coming Soon)'),
-                  e('p', { className: 'text-blue-100 mb-8 text-lg' }, 'Total Parents: ' + parents.length),
+                  e('h1', { className: 'text-4xl font-black text-white mb-4' }, '🔐 לוח מנהל'),
+                  e('p', { className: 'text-blue-100 mb-8' }, 'תכנית מנהל (בקרוב)'),
+                  e('p', { className: 'text-blue-100 mb-8 text-lg' }, 'סה״כ הורים: ' + parents.length),
                   e('button', { 
                     onClick: () => { setMode('login'); setAdminUser(''); setAdminPass(''); }, 
                     className: 'bg-white text-blue-900 font-black py-3 px-8 rounded-xl' 
-                  }, 'Logout')
+                  }, 'התנתקות')
                 )
               )
             );
